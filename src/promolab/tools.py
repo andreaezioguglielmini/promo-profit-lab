@@ -18,7 +18,7 @@ from typing import Any
 import pandas as pd
 
 from promolab import ads as ads_mod
-from promolab import experiments, ingest, margins
+from promolab import descriptive, experiments, ingest, margins
 from promolab.uplift import UpliftEstimate, daily_counts, estimate_uplift
 
 WEEKDAYS_IT = ["lunedì", "martedì", "mercoledì", "giovedì", "venerdì", "sabato", "domenica"]
@@ -48,6 +48,11 @@ class Workspace:
         if self.data.orders is None or self.data.orders.empty:
             raise ToolError("No orders export found. Ask the owner for the Deliveroo 'Ordini' CSV.")
         return self.data.orders
+
+    def products(self) -> pd.DataFrame:
+        if self.data.products is None or self.data.products.empty:
+            raise ToolError("No product sales export found. Ask the owner for the Deliveroo 'prodotti più venduti' CSVs.")
+        return self.data.products
 
     def commission_rate(self) -> float:
         o = self.orders()
@@ -116,7 +121,22 @@ def inspect_data(ws: Workspace) -> dict:
     if d.calendar is None:
         gaps.append("no promo calendar: promo nights are inferred from discounted orders")
     out["gaps"] = gaps
+    out["questions"] = descriptive.open_questions({"costs": d.costs is not None, "orders": d.orders is not None, "ads": d.ads is not None})
     return out
+
+
+def sales_trend(ws: Workspace) -> dict:
+    return descriptive.sales_trend(ws.products())
+
+
+def menu_performance(ws: Workspace, top_n: int = 15, low_rotation_n: int = 8) -> dict:
+    p = ws.products()
+    return {
+        "categories": descriptive.menu_mix(p),
+        "top_dishes": descriptive.product_performance(p, top_n),
+        "low_rotation_dishes": descriptive.low_rotation(p, low_rotation_n),
+        "note": "low rotation is not automatically a problem: premium or dine-in dishes sell little by design",
+    }
 
 
 def sales_overview(ws: Workspace) -> dict:
@@ -285,9 +305,23 @@ _RATE = {"type": "number", "description": "fraction, e.g. 0.2 for 20%"}
 TOOLS: list[Tool] = [
     Tool(
         "inspect_data",
-        "List the exports that were loaded, their date range, and which inputs are missing. Call this first.",
+        "List the exports that were loaded, their date range, which inputs are missing, and which of the owner's open questions the data can answer. Call this first.",
         _obj({}),
         inspect_data,
+    ),
+    Tool(
+        "sales_trend",
+        "Headline numbers and revenue per fortnight from the product-sales exports: total revenue, items sold, revenue per item, "
+        "best and weakest fortnight, how concentrated sales are in the top categories and dishes.",
+        _obj({}),
+        sales_trend,
+    ),
+    Tool(
+        "menu_performance",
+        "Revenue share by category, the top dishes tagged 'alto volume' / 'alto fatturato' / 'da approfondire', "
+        "and the least-sold food dishes with a possible reason to check.",
+        _obj({"top_n": {"type": "integer"}, "low_rotation_n": {"type": "integer"}}),
+        menu_performance,
     ),
     Tool(
         "sales_overview",

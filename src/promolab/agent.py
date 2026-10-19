@@ -37,6 +37,17 @@ report must come from a tool result (rounding is fine).
 Work like an analyst: check what data is there and what is missing, look at the business before the promo,
 then decide. If the evidence does not settle the question, say so and recommend a test of a concrete length
 rather than guessing. State the assumptions that matter (for example, food cost assumed instead of provided).
+The goal is not to push discounts: it is to tell when a commercial lever creates value and when it only adds
+volume at a lower margin.
+
+Owners already know a report with this structure; keep it, skipping a section only when the data is missing:
+1. In breve: the decision on the promo first, then two or three key facts.
+2. Andamento vendite: revenue per fortnight, best and weakest window.
+3. Menu e prodotti: which categories carry revenue, the top dishes and how they earn (volume or value).
+4. Piatti a bassa rotazione: the least-sold dishes with a possible reason to check, not a verdict.
+5. La promo: margin with and without the discount, the break-even uplift, the measured uplift, euros gained or lost.
+6. Annunci, if there is ad data.
+7. Prossimi passi: the next test, and which missing data would answer the questions still open.
 
 Finish by calling submit_report once. Write the report in {language}, for an owner who is not a data person:
 short, concrete, in euros, with the decision first."""
@@ -213,7 +224,7 @@ class ScriptedPolicy:
     """Deterministic baseline: always runs the same analysis plan and fills a report template."""
 
     name = "scripted-baseline"
-    PLAN = ["inspect_data", "sales_overview", "evaluate_promo", "plan_experiment", "evaluate_ads"]
+    PLAN = ["inspect_data", "sales_trend", "menu_performance", "sales_overview", "evaluate_promo", "plan_experiment", "evaluate_ads"]
 
     def __init__(self, language: str = "Italian"):
         self.language = language
@@ -262,54 +273,101 @@ def _eur(x: float) -> str:
 
 
 def scripted_report(r: dict[str, Any]) -> dict:
-    ev, plan, ads, ov = r.get("evaluate_promo"), r.get("plan_experiment"), r.get("evaluate_ads"), r.get("sales_overview")
-    lines = []
+    """Fill the standard report (same chapters as the one delivered by hand) from the tool results."""
+    info, trend, menu = r.get("inspect_data"), r.get("sales_trend"), r.get("menu_performance")
+    ov, ev, plan, ads = r.get("sales_overview"), r.get("evaluate_promo"), r.get("plan_experiment"), r.get("evaluate_ads")
+
     if ev is None:
-        verdict, rec, nights, uplift = "inconclusive", "run_experiment", plan and plan["total_open_nights"], None
-        lines.append("**Decisione:** con questi dati non si può misurare l'effetto della promo.")
+        verdict, rec, uplift = "inconclusive", "run_experiment", None
+        head = "con questi dati non si può misurare l'effetto della promo."
     else:
         verdict, uplift = ev["verdict"], ev["estimated_uplift"]
         rec = {"profitable": "keep_promo", "unprofitable": "stop_promo", "inconclusive": "run_experiment"}[verdict]
-        nights = plan["total_open_nights"] if (plan and verdict == "inconclusive") else None
         head = {
             "profitable": "la promo fa guadagnare: tienila.",
             "unprofitable": "la promo fa perdere soldi: sospendila o riduci lo sconto.",
             "inconclusive": "non si può ancora dire se la promo fa guadagnare.",
         }[verdict]
-        lines.append(f"**Decisione:** {head}")
-        lines.append("")
-        lines.append(
+    nights = plan["total_open_nights"] if (plan and verdict == "inconclusive") else None
+
+    out = ["## In breve", "", f"**Decisione:** {head}", ""]
+    if ov:
+        out.append(f"- {_it(ov['orders_per_night'])} ordini a sera, scontrino medio pagato {_eur(ov['average_order_value_paid'])}.")
+    if trend:
+        out.append(
+            f"- Le prime 5 categorie fanno il {_pct(trend['top5_categories_share'])} del fatturato; "
+            f"la categoria guida è {trend['lead_category']}."
+        )
+
+    if trend:
+        peak, low = trend["peak_period"], trend["weakest_period"]
+        out += ["", "## Andamento vendite", ""]
+        out.append(
+            f"Fatturato da prodotti {_eur(trend['total_revenue'])} su {_it(trend['items_sold'], 0)} piatti "
+            f"({_eur(trend['revenue_per_item'])} a piatto, che non è lo scontrino medio)."
+        )
+        out.append(
+            f"La finestra migliore è {peak['label']} ({_eur(peak['revenue'])}), la più debole {low['label']} "
+            f"({_eur(low['revenue'])}): {_eur(trend['peak_minus_weakest'])} di differenza."
+        )
+
+    if menu:
+        out += ["", "## Menu e prodotti", ""]
+        cats = ", ".join(f"{c['category']} {_pct(c['revenue_share'])}" for c in menu["categories"][:5])
+        out.append(f"Categorie principali: {cats}.")
+        out.append("")
+        for d in [d for d in menu["top_dishes"] if d["tag"] != "da approfondire"]:
+            out.append(f"- {d['name']}: {d['items']} pezzi, {_eur(d['revenue'])} ({d['tag']})")
+        out += ["", "## Piatti a bassa rotazione", ""]
+        for d in menu["low_rotation_dishes"][:5]:
+            out.append(f"- {d['name']} ({d['items']} pezzi a {_eur(d['price'])}): {d['possible_reason']}")
+        out.append("")
+        out.append("Una bassa rotazione non è per forza un problema: va controllata prima di togliere un piatto.")
+
+    out += ["", "## La promo", ""]
+    if ev is None:
+        out.append("Non ci sono abbastanza sere con e senza promo per misurarne l'effetto.")
+    else:
+        lo, hi = ev["uplift_interval_90"]
+        out.append(
             f"- Con lo sconto del {_pct(ev['discount'])} il margine per ordine scende da {_eur(ev['margin_per_order_full_price'])} "
             f"a {_eur(ev['margin_per_order_with_discount'])}: servono almeno il {_pct(ev['breakeven_uplift'])} di ordini in più per andare in pari."
         )
-        lo, hi = ev["uplift_interval_90"]
-        lines.append(f"- Nelle sere in promo gli ordini sono aumentati del {_pct(uplift)} (intervallo plausibile {_pct(lo)}–{_pct(hi)}).")
-        lines.append(
+        out.append(f"- Nelle sere in promo gli ordini sono aumentati del {_pct(uplift)} (intervallo plausibile {_pct(lo)}–{_pct(hi)}).")
+        out.append(
             f"- Effetto sul margine: {_eur(ev['profit_change_per_promo_night'])} per sera in promo, "
             f"{_eur(ev['profit_change_over_observed_promo_nights'])} sulle {ev['promo_nights_observed']} sere osservate."
         )
         if ev.get("costs_assumed"):
-            lines.append("- Attenzione: il food cost non è stato fornito ed è stimato; con i costi veri il risultato può cambiare.")
-    if plan and verdict == "inconclusive":
-        lines.append(
-            f"- Prossimo passo: un test con promo accesa e spenta a sere alterne per {plan['total_open_nights']} sere "
-            f"(circa {_it(plan['weeks_needed'])} settimane)."
-        )
+            out.append("- Attenzione: il food cost non è stato fornito ed è stimato; con i costi veri il risultato può cambiare.")
+
     if ads:
-        lines.append(
-            f"- Annunci: ROAS {_it(ads['roas'])} contro un ROAS di pareggio di {_it(ads['breakeven_roas_if_partly_incremental'])} "
+        out += ["", "## Annunci", ""]
+        out.append(
+            f"ROAS {_it(ads['roas'])} contro un ROAS di pareggio di {_it(ads['breakeven_roas_if_partly_incremental'])} "
             f"(se metà degli ordini da annuncio sarebbe arrivata comunque)."
         )
-    if ov:
-        lines.append(
-            f"- Contesto: {_it(ov['orders_per_night'])} ordini a sera, scontrino medio pagato {_eur(ov['average_order_value_paid'])}."
+
+    out += ["", "## Prossimi passi", ""]
+    if plan and verdict == "inconclusive":
+        out.append(
+            f"- Test con promo accesa e spenta a sere alterne per {plan['total_open_nights']} sere "
+            f"(circa {_it(plan['weeks_needed'])} settimane)."
         )
+    elif verdict == "unprofitable":
+        out.append("- Sospendere la promo o provarne una più leggera, limitata alle sere più deboli.")
+    else:
+        out.append("- Tenere la promo e ricontrollare il risultato il mese prossimo.")
+    if info:
+        for q in [q for q in info["questions"] if not q["answerable_now"]]:
+            out.append(f"- {q['question']} Serve: {q['needs']}.")
+
     return {
         "verdict": verdict,
         "estimated_uplift": uplift,
         "recommendation": rec,
         "experiment_nights": nights,
-        "report_markdown": "\n".join(lines),
+        "report_markdown": "\n".join(out),
     }
 
 

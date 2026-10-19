@@ -1,23 +1,26 @@
 Nome del ristorante,Categoria,Nome articolo,Quantità,Prezzo,Subtotale
-La Tasca Sintetica,Empanadas,Empanadas di manzo,34,7.0,238.0
+La Tasca Sintetica,Empanadas,Empanadas di manzo,33,7.0,231.0
+La Tasca Sintetica,Montaditos,Montaditos burger,18,10.0,180.0
 La Tasca Sintetica,Empanadas,Empanadas di pollo,18,8.0,144.0
-La Tasca Sintetica,Empanadas,Empanadas al prosciutto iberico,17,8.5,144.5
-La Tasca Sintetica,Montaditos,Montaditos burger,16,10.0,160.0
+La Tasca Sintetica,Empanadas,Empanadas al prosciutto iberico,18,8.5,153.0
+La Tasca Sintetica,Tapas classiche,Calamari fritti,16,9.0,144.0
 La Tasca Sintetica,Crocchette,Crocchette di prosciutto,16,8.0,128.0
-La Tasca Sintetica,Dolci,Churros con cioccolato,15,7.5,112.5
-La Tasca Sintetica,Tapas classiche,Tortilla di patate,13,8.0,104.0
-La Tasca Sintetica,Tapas classiche,Patatas bravas,13,7.0,91.0
-La Tasca Sintetica,Contorni,Chips di zucchine,12,5.0,60.0
-La Tasca Sintetica,Tacos,Tacos di pollo,11,13.0,143.0
+La Tasca Sintetica,Dolci,Churros con cioccolato,14,7.5,105.0
+La Tasca Sintetica,Tacos,Tacos di manzo,11,15.0,165.0
+La Tasca Sintetica,Tapas classiche,Patatas bravas,11,7.0,77.0
+La Tasca Sintetica,Bevande,Acqua naturale,10,2.0,20.0
+La Tasca Sintetica,Contorni,Chips di zucchine,10,5.0,50.0
 La Tasca Sintetica,Empanadas,Empanadas di verdure,10,6.5,65.0
-La Tasca Sintetica,Tacos,Tacos di manzo,10,15.0,150.0
-La Tasca Sintetica,Bevande,Sangria (50 cl),9,9.0,81.0
-La Tasca Sintetica,Crocchette,Crocchette di chorizo,8,8.0,64.0
-La Tasca Sintetica,Tapas classiche,Calamari fritti,8,9.0,72.0
-La Tasca Sintetica,Contorni,Pimientos alla piastra,7,5.0,35.0
-La Tasca Sintetica,Tapas della casa,Tataki di tonno,6,14.0,84.0
-La Tasca Sintetica,Bevande,Acqua naturale,5,2.0,10.0
-La Tasca Sintetica,Dolci,Cheesecake,3,7.0,21.0
-La Tasca Sintetica,Montaditos,Montaditos di maiale iberico,2,14.0,28.0
-La Tasca Sintetica,Tapas classiche,Polpette al sugo,2,12.0,24.0
+La Tasca Sintetica,Tacos,Tacos di pollo,8,13.0,104.0
+La Tasca Sintetica,Tapas classiche,Tortilla di patate,8,8.0,64.0
+La Tasca Sintetica,Crocchette,Crocchette di chorizo,7,8.0,56.0
+La Tasca Sintetica,Contorni,Pimientos alla piastra,6,5.0,30.0
+La Tasca Sintetica,Bevande,Sangria (50 cl),5,9.0,45.0
+La Tasca Sintetica,Dolci,Cheesecake,5,7.0,35.0
+La Tasca Sintetica,Tapas della casa,Tataki di tonno,4,14.0,56.0
+La Tasca Sintetica,Montaditos,Montaditos di maiale iberico,3,14.0,42.0
+La Tasca Sintetica,Contorni,Verdure alla piastra,1,5.0,5.0
+La Tasca Sintetica,Montaditos,Montaditos salmone e burrata,1,11.5,11.5
+La Tasca Sintetica,Tapas classiche,Polpette al sugo,1,12.0,12.0
 La Tasca Sintetica,Tapas della casa,Polpo alla piastra,1,18.0,18.0
+La Tasca Sintetica,Tapas della casa,Tagliere di prosciutto iberico,1,22.0,22.0

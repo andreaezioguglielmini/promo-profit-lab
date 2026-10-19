@@ -47,33 +47,17 @@ DEFAULT_MENU: list[tuple[str, str, float, float, float]] = [
     ("Churros con cioccolato", "Dolci", 7.5, 0.18, 0.40),
     ("Sangria (50 cl)", "Bevande", 9.0, 0.15, 0.30),
     ("Acqua naturale", "Bevande", 2.0, 0.15, 0.10),
+    # Long tail: dishes that rarely sell on delivery, as on most real menus.
+    ("Verdure alla piastra", "Contorni", 5.0, 0.22, 0.40),
+    ("Insalata mista", "Contorni", 5.0, 0.20, 0.40),
+    ("Tortilla al formaggio erborinato", "Tapas classiche", 9.5, 0.30, 0.60),
+    ("Bruschette al chorizo", "Tapas della casa", 10.0, 0.33, 0.60),
+    ("Montaditos salmone e burrata", "Montaditos", 11.5, 0.40, 0.60),
+    ("Tagliere di prosciutto iberico", "Tapas della casa", 22.0, 0.45, 0.80),
 ]
 
 # Relative popularity of each dish, same order as DEFAULT_MENU.
-DEFAULT_POPULARITY = [
-    16,
-    7,
-    4,
-    10,
-    9,
-    3,
-    6,
-    5,
-    3,
-    2,
-    2,
-    2,
-    6,
-    2,
-    5,
-    4,
-    7,
-    3,
-    2,
-    4,
-    2,
-    3,
-]
+DEFAULT_POPULARITY = [16, 7, 4, 10, 9, 3, 6, 5, 3, 2, 2, 2, 6, 2, 5, 4, 7, 3, 2, 4, 2, 3, 0.6, 0.3, 0.3, 0.2, 0.25, 0.3]
 
 # Mean orders per open night by weekday (Mon=0). Monday closed.
 DEFAULT_WEEKDAY_RATE = {0: 0.0, 1: 2.4, 2: 2.6, 3: 3.4, 4: 4.6, 5: 4.8, 6: 2.8}

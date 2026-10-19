@@ -10,6 +10,7 @@ Metrics
 - harmful errors: told the owner to keep a promo that actually loses money
 - grounded reports: every figure in the report traced to a tool result
 - caveat recall: when food costs were missing, did the report say they were assumed
+- standard report: share of the hand-made report's analyses the agent ran (sales trend, menu, promo)
 - cost: tool calls, turns, tokens, seconds per case
 """
 
@@ -27,6 +28,7 @@ from promolab.tools import Workspace
 
 # Scenarios where an input file is withheld from the agent.
 DROP_FILES = {"Tasca L": ["costi_menu.csv"]}
+STANDARD_TOOLS = ("sales_trend", "menu_performance", "evaluate_promo")
 CAVEAT = re.compile(r"food ?cost|costi|stimat|assum", re.I)
 
 
@@ -45,6 +47,7 @@ class CaseScore:
     rejected_reports: int
     caveat_needed: bool
     caveat_given: bool
+    standard_report: float
     tool_calls: int
     turns: int
     input_tokens: int
@@ -100,6 +103,7 @@ def score_case(name: str, truth: simulate.GroundTruth, res: AgentResult, caveat_
         rejected_reports=res.rejected_reports,
         caveat_needed=caveat_needed,
         caveat_given=bool(CAVEAT.search(rep.get("report_markdown", ""))),
+        standard_report=round(sum(t in res.tools_used() for t in STANDARD_TOOLS) / len(STANDARD_TOOLS), 3),
         tool_calls=len(res.steps),
         turns=res.turns,
         input_tokens=res.usage.get("input_tokens", 0),
@@ -121,6 +125,7 @@ def summarize(cases: list[CaseScore]) -> dict:
         "grounded_reports": round(sum(c.grounded for c in cases) / n, 3),
         "reports_rejected_then_fixed": sum(c.rejected_reports > 0 and c.grounded for c in cases),
         "caveat_recall": round(sum(c.caveat_given for c in caveat) / len(caveat), 3) if caveat else None,
+        "standard_report_coverage": round(sum(c.standard_report for c in cases) / n, 3),
         "uplift_mae": round(sum(errs) / len(errs), 3) if errs else None,
         "avg_tool_calls": round(sum(c.tool_calls for c in cases) / n, 1),
         "avg_turns": round(sum(c.turns for c in cases) / n, 1),

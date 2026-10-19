@@ -4,10 +4,10 @@
   "true_uplift": 0.35,
   "commission": 0.25,
   "margin_per_order_full": 15.58,
-  "margin_per_order_promo": 9.76,
-  "breakeven_uplift": 0.5966,
+  "margin_per_order_promo": 9.74,
+  "breakeven_uplift": 0.5994,
   "expected_orders_per_promo_day_without_promo": 3.433,
-  "expected_delta_profit_per_promo_day": -8.26,
+  "expected_delta_profit_per_promo_day": -8.34,
   "promo_is_profitable": false,
   "promo_days": 60,
   "total_days": 120
